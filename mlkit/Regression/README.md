@@ -59,6 +59,7 @@ $$\alpha$$ is the learning rate
 
 **3. Model Evaluation ($R^2$ and F-Statistic)**
 Evaluates goodness-of-fit by comparing the Sum of Squared Residuals of the fitted model ($SSR_{fit}$) against a baseline model ($SSR_{mean}$).
+This just compares the variance explained by the model to the total variance.
 
 $$R^2 = \frac{SSR_{mean} - SSR_{fit}}{SSR_{mean}}$$
 
