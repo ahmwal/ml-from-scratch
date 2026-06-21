@@ -33,7 +33,7 @@ As the SSR can be graphed as a continuous function, this search can then be skip
 ### The Mathematics Under the Hood
 
 **1. Closed-Form Solution (Normal Equation)**
-Calculates the exact coefficients by minimizing the cost function algebraically. If `lmbda > 0`, it applies L2 regularization (Ridge), where $I$ is the identity matrix.
+Calculates the exact coefficients by minimizing the cost function algebraically. If `lmbda > 0`, it applies L2 regularization (Ridge), where $I$ is the identity matrix. [Derivation](../notes)
 
 $$\beta = (X^T X + \lambda I)^{-1} X^T y$$
 
@@ -44,7 +44,7 @@ $$\lambda$$ is regularization penalty scaler and
 $$y$$ is the dependant parameter vector
 
 **2. Gradient Descent**
-Iteratively updates the weights by taking steps in the direction of the negative gradient of the Mean Squared Error loss function.
+Iteratively updates the weights by taking steps in the direction of the negative gradient of the Mean Squared Error loss function. [Derivation](../notes)
 
 $$\nabla_\beta J(\beta) = -\alpha(\frac{2}{n} X^T (y - X\beta) + 2\lambda\beta)$$
 
