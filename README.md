@@ -30,6 +30,6 @@ mlkit
 
 This repository is heavily inspired by my ongoing study of a few classic texts:
 
-  The Elements of Statistical Learning (Hastie, Tibshirani, Friedman)
+  [The Elements of Statistical Learning](https://hastie.su.domains/ElemStatLearn/) (Hastie, Tibshirani, Friedman)
 
-  Pattern Recognition and Machine Learning (Bishop)
+  [Pattern Recognition and Machine Learning](https://www.microsoft.com/en-us/research/wp-content/uploads/2006/01/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf) (Bishop)
