@@ -22,7 +22,7 @@ A dependency-free implementation of Linear Regression. This class exposes three 
 #### The "Naive Step" Hypothesis
 The `fitNaiveStep` method was built to test a specific hypothesis: *Under the assumption of non-collinearity, independently adjusting each parameter to greedily minimize the Sum of Squared Residuals (SSR) will eventually converge to the global optimum.* The implementation confirms this. However, because it acts as a greedy search—moving strictly in the immediate direction that minimizes SSR for one parameter at a time—it is computationally inefficient and significantly slower than both the gradient descent and closed-form solutions.
 
-As the SSR can be graphed as a continuous function, this search can then be skipped by using the first and second order derivative minima test to reach the OLS closed-form solution, or by using guided search through gradient descent through getting the derivative of the loss function with respect to the parameters of the linear regression model.
+As the SSR can be graphed as a continuous function, this search can then be skipped by using the first order (the Jacobian) minima equation and second order (the Hessian) derivative concavity test to reach the OLS closed-form solution (under the assumption of a non-collinear parameter set), or by using guided search through gradient descent through getting the derivative of the cost function with respect to the parameters of the linear regression model.
 
 ### 📊 Performance Comparison
 
@@ -35,12 +35,27 @@ As the SSR can be graphed as a continuous function, this search can then be skip
 **1. Closed-Form Solution (Normal Equation)**
 Calculates the exact coefficients by minimizing the cost function algebraically. If `lmbda > 0`, it applies L2 regularization (Ridge), where $I$ is the identity matrix.
 
-$$\theta = (X^T X + \lambda I)^{-1} X^T y$$
+$$\beta = (X^T X + \lambda I)^{-1} X^T y$$
+
+Where 
+$$\beta$$ is the coefficient vector, 
+$$X$$ is the independant parameter matrix, 
+$$\lambda$$ is regularization penalty scaler and
+$$y$$ is the dependant parameter vector
 
 **2. Gradient Descent**
 Iteratively updates the weights by taking steps in the direction of the negative gradient of the Mean Squared Error loss function.
 
-$$\nabla_\theta J(\theta) = -\frac{2}{n} X^T (y - X\theta) + 2\lambda\theta$$
+$$\nabla_\beta J(\beta) = -\alpha(\frac{2}{n} X^T (y - X\beta) + 2\lambda\beta)$$
+
+Where
+$$\nabla_\beta J(\beta)$$ is the gradient of our coefficients at this step, 
+$$\beta$$ is the coefficient vector,
+$$X$$ is the independant parameter matrix, 
+$$\lambda$$ is regularization penalty scaler, 
+$$y$$ is the dependant parameter vector, 
+$$n$$ is the number of samples, 
+$$\alpha$$ is the learning rate
 
 **3. Model Evaluation ($R^2$ and F-Statistic)**
 Evaluates goodness-of-fit by comparing the Sum of Squared Residuals of the fitted model ($SSR_{fit}$) against a baseline model ($SSR_{mean}$).
