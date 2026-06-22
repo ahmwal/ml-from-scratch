@@ -46,6 +46,10 @@ By applying an $L_2$ penalty using a scaling term $$\lambda$$ and the coefficien
 #### **2. Closed-Form Solution (Normal Equation)**
 Calculates the exact coefficients by minimizing the cost function algebraically. If `lmbda > 0`, it applies L2 regularization (Ridge), where $I$ is the identity matrix. [Derivation](../notes)
 
+This is dependent on non-collinearity of the input parameters to ensure that the $(X^T X)$ is invertible by ensuring the $(X^T X)$ term is a symmetric matrix with positive, real eigenvalues.
+
+This can also be ensured using $L_2$ regularization by adding values to the main diagonal of the term.
+
 $$\beta = (X^T X + \lambda I)^{-1} X^T y$$
 
 Where 
