@@ -1,31 +1,54 @@
 from typing import Any, Tuple
 
 import numpy as np
+from utils.optimzers import gradientDescent
+from utils.stats import getSSR
 
 
-class LinearRegression:
+class normalEquationLinearRegression:
     intercept: float = 0.0
     coefficients: np.array[Tuple[Any], np.dtype[np.float64]] = None
-    fit_SSR: float | None = None
-    mean_SSR: float | None = None
-    n: int = 0
     rng: np.random.Generator
+    lmbda: float = 0
 
-    def __init__(self, num_params: int = 1, seed: int = 43) -> None:
+    def __init__(self, seed: int = 43, lmbda: float = 0) -> None:
         self.rng = np.random.default_rng(seed=seed)
-        self.coefficients = self.rng.random((num_params + 1), dtype=np.float64)
-        # self.coefficients = np.zeros((num_params + 1,), dtype=np.float64)
+        self.lmbda = lmbda
 
-    def __getSSR(
+    def fit(
         self,
-        y: Any,
-        yhat: Any,
-    ) -> float:
-        SSR = y - yhat
-        SSR = SSR.T @ SSR
-        return SSR
+        x: np.ndarray[Any, np.dtype[np.float64]],
+        y: np.ndarray[Any, np.dtype[np.float64]],
+    ) -> None:
+        padding = np.full(x.shape[:-1] + (1,), 1)
+        fity = y.flatten() if y.shape[-1] == 1 else y
 
-    def fitNaiveStep(
+        fitx = np.append(x, padding, axis=-1)
+        self.n = fitx.shape[0]
+
+        self.coefficients = (
+            np.linalg.inv((fitx.T @ fitx) + (self.lmbda * np.identity(fitx.shape[-1])))
+            @ fitx.T
+            @ fity
+        )
+
+    def predict(self, x: np.ndarray[Any, np.dtype[np.float64]]) -> np.array:
+        padding = np.full(x.shape[:-1] + (1,), 1)
+        fitx = np.append(x, padding, axis=-1)
+        return fitx @ self.coefficients
+
+
+class naiveDescentLinearRegression:
+    intercept: float = 0.0
+    coefficients: np.array[Tuple[Any], np.dtype[np.float64]] = None
+    rng: np.random.Generator
+    lmbda: float = 0
+
+    def __init__(self, seed: int = 43, lmbda: float = 0) -> None:
+        self.rng = np.random.default_rng(seed=seed)
+        self.lmbda = lmbda
+
+    def fit(
         self,
         x: np.ndarray[Any, np.dtype[np.float64]],
         y: np.ndarray[Any, np.dtype[np.float64]],
@@ -34,15 +57,15 @@ class LinearRegression:
     ) -> None:
         padding = np.full(x.shape[:-1] + (1,), 1)
         fitx = np.append(x, padding, axis=-1)
-        self.n = fitx.shape[0]
+        dim = fitx.shape[-1]
+
+        self.coefficients = self.rng.random((dim), dtype=np.float64)
 
         fity = y.flatten() if y.shape[-1] == 1 else y
-        preds = self.__predict(fitx)
-
-        self.mean_SSR = self.__getSSR(fity.mean(), fity)
         self.coefficients[-1] = fity.mean()
 
-        last_sum_of_squared_residuals = self.__getSSR(fity, preds)
+        preds = self.__predict(fitx)
+        last_sum_of_squared_residuals = getSSR(fity, preds)
         global_best_residuals = last_sum_of_squared_residuals
         direction = 1
 
@@ -55,7 +78,9 @@ class LinearRegression:
 
                     self.coefficients[i] += direction * step
                     preds = self.__predict(fitx)
-                    sum_of_squared_residuals = self.__getSSR(fity, preds)
+                    sum_of_squared_residuals = getSSR(fity, preds) + (
+                        self.lmbda * (self.coefficients[i]) ** 2
+                    )
                     if sum_of_squared_residuals >= last_sum_of_squared_residuals:
                         direction *= -1
                         endurance += 1
@@ -72,30 +97,100 @@ class LinearRegression:
                     last_sum_of_squared_residuals = sum_of_squared_residuals
 
         preds = self.__predict(fitx)
-        self.fit_SSR = self.__getSSR(fity, preds)
+        self.fit_SSR = getSSR(fity, preds)
 
-    def fitClosed(
+    def __predict(self, x: np.ndarray[Any, np.dtype[np.float64]]) -> np.array:
+        return x @ self.coefficients
+
+    def predict(self, x: np.ndarray[Any, np.dtype[np.float64]]) -> np.array:
+        padding = np.full(x.shape[:-1] + (1,), 1)
+        fitx = np.append(x, padding, axis=-1)
+        return fitx @ self.coefficients
+
+
+class gradientDescentLinearRegression:
+    intercept: float = 0.0
+    coefficients: np.array[Tuple[Any], np.dtype[np.float64]] = None
+    rng: np.random.Generator
+    lmbda: float = 0
+
+    def __init__(self, seed: int = 43, lmbda: float = 0) -> None:
+        self.rng = np.random.default_rng(seed=seed)
+        self.lmbda = lmbda
+
+    def fit(
         self,
         x: np.ndarray[Any, np.dtype[np.float64]],
         y: np.ndarray[Any, np.dtype[np.float64]],
-        lmbda: float = 0,
+        step: float = 0.001,
+        convergence_thresh: float = 0.001,
+        iters: int | None = None,
     ) -> None:
         padding = np.full(x.shape[:-1] + (1,), 1)
-        fity = y.flatten() if y.shape[-1] == 1 else y
-        self.mean_SSR = self.__getSSR(fity.mean(), fity)
-
         fitx = np.append(x, padding, axis=-1)
-        self.n = fitx.shape[0]
+        dim = fitx.shape[-1]
+        self.coefficients = self.rng.random((dim), dtype=np.float64)
 
-        self.coefficients = (
-            np.linalg.inv((fitx.T @ fitx) + (lmbda * np.identity(fitx.shape[-1])))
-            @ fitx.T
-            @ fity
+        fity = y.flatten() if y.shape[-1] == 1 else y
+        self.coefficients[-1] = fity.mean()
+
+        gd = gradientDescent(self.rng)
+
+        self.coefficients = gd.getGradients(
+            fitx, fity, self.coefficients, self.lmbda, convergence_thresh, iters, step
         )
-        preds = self.__predict(fitx)
-        self.fit_SSR = self.__getSSR(fity, preds)
 
-    def fitGradStep(
+    def predict(self, x: np.ndarray[Any, np.dtype[np.float64]]) -> np.array:
+        padding = np.full(x.shape[:-1] + (1,), 1)
+        fitx = np.append(x, padding, axis=-1)
+        return fitx @ self.coefficients
+
+
+class lassoGradientDescentSubGradientLinearRegression:
+    intercept: float = 0.0
+    coefficients: np.array[Tuple[Any], np.dtype[np.float64]] = None
+    rng: np.random.Generator
+    lmbda: float = 0
+
+    def __init__(self, seed: int = 43, lmbda: float = 0) -> None:
+        self.rng = np.random.default_rng(seed=seed)
+        self.lmbda = lmbda
+
+    def fit(
+        self,
+        x: np.ndarray[Any, np.dtype[np.float64]],
+        y: np.ndarray[Any, np.dtype[np.float64]],
+        step: float = 0.001,
+        convergence_thresh: float = 0.001,
+        iters: int | None = None,
+    ) -> None:
+        padding = np.full(x.shape[:-1] + (1,), 1)
+        fitx = np.append(x, padding, axis=-1)
+        self.coefficients = self.rng.random((fitx.shape[1]), dtype=np.float64)
+
+        fity = y.flatten() if y.shape[-1] == 1 else y
+        self.coefficients[-1] = fity.mean()
+        gd = gradientDescent(self.rng)
+
+        self.coefficients = gd.getLassoGradientsSubgradient(
+            fitx, fity, self.coefficients, self.lmbda, convergence_thresh, iters, step
+        )
+
+    def predict(self, x: np.ndarray[Any, np.dtype[np.float64]]) -> np.array:
+        padding = np.full(x.shape[:-1] + (1,), 1)
+        fitx = np.append(x, padding, axis=-1)
+        return fitx @ self.coefficients
+
+
+class stochasticGradientDescentLinearRegression:
+    intercept: float = 0.0
+    coefficients: np.array[Tuple[Any], np.dtype[np.float64]] = None
+    rng: np.random.Generator
+
+    def __init__(self, num_params: int = 1, seed: int = 43) -> None:
+        self.rng = np.random.default_rng(seed=seed)
+
+    def fit(
         self,
         x: np.ndarray[Any, np.dtype[np.float64]],
         y: np.ndarray[Any, np.dtype[np.float64]],
@@ -106,20 +201,15 @@ class LinearRegression:
     ) -> None:
         padding = np.full(x.shape[:-1] + (1,), 1)
         fitx = np.append(x, padding, axis=-1)
-        self.n = fitx.shape[0]
+        self.coefficients = self.rng.random((fitx.shape[1]), dtype=np.float64)
 
         fity = y.flatten() if y.shape[-1] == 1 else y
-        self.mean_SSR = self.__getSSR(fity.mean(), fity)
         self.coefficients[-1] = fity.mean()
 
         i = 0
 
         while True:
-            pcoef = self.coefficients.copy()
-            pcoef[-1] = 0
-            grads = -(2 / fitx.shape[0]) * (
-                fitx.T @ (fity - (fitx @ self.coefficients))
-            ) + (2 * lmbda * pcoef)
+            grads = getGradients(fitx, fity, self.coefficients, lmbda)
 
             if np.mean(np.abs(grads)) < convergence_thresh:
                 break
@@ -130,29 +220,38 @@ class LinearRegression:
             self.coefficients -= step * grads
             i += 1
 
-        preds = self.__predict(fitx)
-        self.fit_SSR = self.__getSSR(fity, preds)
-
-    def __predict(self, x: np.ndarray[Any, np.dtype[np.float64]]) -> np.array:
-        return x @ self.coefficients
-
     def predict(self, x: np.ndarray[Any, np.dtype[np.float64]]) -> np.array:
         padding = np.full(x.shape[:-1] + (1,), 1)
         fitx = np.append(x, padding, axis=-1)
         return fitx @ self.coefficients
 
-    def getRSquared(self) -> dict | None:
-        if not (self.mean_SSR and self.fit_SSR):
-            raise Exception("Must fit model first before calculating R2!")
 
-        r2 = round((self.mean_SSR - self.fit_SSR) / self.mean_SSR, 2)
-        F = (r2 / len(self.coefficients)) / (
-            (1 - r2) / (self.n - len(self.coefficients) - 1)
-        )
+class lassoStochasticGradientDescentLinearRegression:
+    intercept: float = 0.0
+    coefficients: np.array[Tuple[Any], np.dtype[np.float64]] = None
+    rng: np.random.Generator
 
-        return {
-            "meanSSR": float(self.mean_SSR),
-            "fitSSR": float(self.fit_SSR),
-            "F": float(F),
-            "r2": float(r2),
-        }
+    def __init__(self, num_params: int = 1, seed: int = 43) -> None:
+        self.rng = np.random.default_rng(seed=seed)
+
+    def fit(
+        self,
+        x: np.ndarray[Any, np.dtype[np.float64]],
+        y: np.ndarray[Any, np.dtype[np.float64]],
+        step: float = 0.001,
+        convergence_thresh: float = 0.001,
+        iters: int | None = None,
+        lmbda: int = 0,
+    ) -> None:
+        padding = np.full(x.shape[:-1] + (1,), 1)
+        fitx = np.append(x, padding, axis=-1)
+        self.coefficients = self.rng.random((fitx.shape[1]), dtype=np.float64)
+
+        fity = y.flatten() if y.shape[-1] == 1 else y
+        self.coefficients[-1] = fity.mean()
+        pass
+
+    def predict(self, x: np.ndarray[Any, np.dtype[np.float64]]) -> np.array:
+        padding = np.full(x.shape[:-1] + (1,), 1)
+        fitx = np.append(x, padding, axis=-1)
+        return fitx @ self.coefficients

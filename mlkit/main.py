@@ -1,7 +1,6 @@
-import matplotlib.pyplot as plt
 import pandas as pd
 from Regression.LinearRegression import LinearRegression
-from utils.scaling import minmaxnormalize, zscorestandardize
+from utils.scaling import zscoreStandardize
 from utils.stats import meanSquaredError
 
 seed = 742
@@ -18,11 +17,11 @@ def main():
         else test_y.to_numpy()
     )
     x = train.iloc[:, :-1].to_numpy()
-    x_scaled = zscorestandardize(x)
+    x_scaled = zscoreStandardize(x)
     y = train.iloc[:, -1:].to_numpy()
 
     x_test = test.to_numpy()
-    x_test_scaled = zscorestandardize(x_test)
+    x_test_scaled = zscoreStandardize(x_test)
 
     print(train.to_string(), test.to_string(), test_y)
 
@@ -37,7 +36,7 @@ def main():
     # naivecoef = myregNaiveDescent.coefficients
 
     myregGradDescent = LinearRegression(test.to_numpy().shape[-1], seed)
-    myregGradDescent.fitGradStep(x_scaled, y, lmbda=1)
+    myregGradDescent.fitGradStep(x_scaled, y, lmbda=0)
     gradpred = myregGradDescent.predict(x_test_scaled)
     gradcoef = myregGradDescent.coefficients
 

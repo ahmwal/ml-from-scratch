@@ -25,3 +25,35 @@ def precisionRecallAccuracy(
         s[c] = [precision, recall, accuracy]
 
     return s
+
+
+def getSSR(
+    y: np.array[Tuple[Any], np.dtype[np.float64]],
+    y_hat: np.array[Tuple[Any], np.dtype[np.float64]],
+) -> float:
+    SSR = y - y_hat
+    SSR = SSR.T @ SSR
+    return SSR
+
+
+def getRSquared(
+    y: np.array[Tuple[Any], np.dtype[np.float64]],
+    y_hat: np.array[Tuple[Any], np.dtype[np.float64]],
+) -> float:
+    mean_SSR = getSSR(y.mean(), y)
+    fit_SSR = getSSR(y, y_hat)
+
+    r2 = round((mean_SSR - fit_SSR) / mean_SSR, 2)
+
+    return r2
+
+
+def getFStatistic(
+    y: np.array[Tuple[Any], np.dtype[np.float64]],
+    y_hat: np.array[Tuple[Any], np.dtype[np.float64]],
+    n: int,
+    dof: int,
+) -> float:
+    r2 = getRSquared(y, y_hat)
+    F = (r2 / dof) / ((1 - r2) / (n - dof) - 1)
+    return F

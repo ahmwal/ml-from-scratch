@@ -1,13 +1,13 @@
 import numpy as np
 
 
-def zscorestandardize(
+def zscoreStandardize(
     x: np.array[Tuple[Any], np.dtype[Any]],
 ) -> np.array[Tuple[Any], np.dtype[Any]]:
     return (x - x.mean(axis=0)) / x.std(axis=0)
 
 
-def minmaxnormalize(
+def minMaxNormalize(
     x: np.array[Tuple[Any], np.dtype[Any]],
     a: float | None = None,
     b: float | None = None,
