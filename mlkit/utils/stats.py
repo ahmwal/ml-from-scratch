@@ -43,7 +43,7 @@ def getRSquared(
     mean_SSR = getSSR(y.mean(), y)
     fit_SSR = getSSR(y, y_hat)
 
-    r2 = round((mean_SSR - fit_SSR) / mean_SSR, 2)
+    r2 = 1 - (fit_SSR / mean_SSR)
 
     return r2
 
@@ -55,5 +55,5 @@ def getFStatistic(
     dof: int,
 ) -> float:
     r2 = getRSquared(y, y_hat)
-    F = (r2 / dof) / ((1 - r2) / (n - dof) - 1)
+    F = (r2 / dof) / ((1 - r2) / ((n - dof) - 1))
     return F

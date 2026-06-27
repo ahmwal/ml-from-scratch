@@ -56,11 +56,13 @@ def benchmark_models(models_dict, X_train, y_train, X_test, y_test):
         # Calculate Metrics
         try:
             mse = meanSquaredError(y_test, predictions)
-            f = getFStatistic(y_test, predictions, X_train.shape[0], model.coefficients)
+            f = getFStatistic(
+                y_test, predictions, X_train.shape[0], len(model.coefficients)
+            )
             print(model.coefficients)
         except Exception as e:
             mse = mean_squared_error(y_test, predictions)
-            f = getFStatistic(y_test, predictions, X_train.shape[0], model.coef_)
+            f = getFStatistic(y_test, predictions, X_train.shape[0], len(model.coef_))
             print(model.coef_)
 
         r2 = r2_score(y_test, predictions)
@@ -122,7 +124,7 @@ def plot_bar_comparisons(results):
     axes[1, 1].tick_params(axis="x", rotation=45)
 
     # 5. F-Statistic
-    axes[0, 2].bar(names, mem_vals, color="orchid", edgecolor="black")
+    axes[0, 2].bar(names, f_vals, color="brown", edgecolor="black")
     axes[0, 2].set_title("F-Statistic (Higher is better)")
     axes[0, 2].tick_params(axis="x", rotation=45)
 
@@ -198,7 +200,7 @@ def plot_convergence_curves(results):
 if __name__ == "__main__":
     # Generate some synthetic regression data for testing
     print("Generating synthetic data...")
-    X, y = make_regression(n_samples=1000, n_features=10, noise=0.5, random_state=seed)
+    X, y = make_regression(n_samples=2000, n_features=10, noise=0.5, random_state=seed)
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=seed
     )

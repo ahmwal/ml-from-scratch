@@ -53,7 +53,7 @@ class naiveDescentLinearRegression:
         x: np.ndarray[Any, np.dtype[np.float64]],
         y: np.ndarray[Any, np.dtype[np.float64]],
         step: float = 0.001,
-        convergence_thresh: float = 0.001,
+        convergence_thresh: float = 0.0001,
     ) -> None:
         padding = np.full(x.shape[:-1] + (1,), 1)
         fitx = np.append(x, padding, axis=-1)
@@ -69,11 +69,11 @@ class naiveDescentLinearRegression:
         global_best_residuals = last_sum_of_squared_residuals
         direction = 1
 
-        for n in range(25):
+        for _ in range(len(self.coefficients)):
             for i in range(len(self.coefficients)):
                 endurance = 0
                 while True:
-                    if endurance >= 256:
+                    if endurance >= 64:
                         break
 
                     self.coefficients[i] += direction * step
@@ -92,7 +92,8 @@ class naiveDescentLinearRegression:
                         abs(sum_of_squared_residuals - last_sum_of_squared_residuals)
                         <= convergence_thresh
                     ):
-                        endurance += 1
+                        last_sum_of_squared_residuals = sum_of_squared_residuals
+                        break
 
                     last_sum_of_squared_residuals = sum_of_squared_residuals
 
@@ -122,8 +123,8 @@ class gradientDescentLinearRegression:
         self,
         x: np.ndarray[Any, np.dtype[np.float64]],
         y: np.ndarray[Any, np.dtype[np.float64]],
-        step: float = 0.001,
-        convergence_thresh: float = 0.001,
+        step: float = 0.00001,
+        convergence_thresh: float = 0.0001,
         iters: int | None = None,
     ) -> None:
         padding = np.full(x.shape[:-1] + (1,), 1)
@@ -160,8 +161,8 @@ class lassoGradientDescentSubGradientLinearRegression:
         self,
         x: np.ndarray[Any, np.dtype[np.float64]],
         y: np.ndarray[Any, np.dtype[np.float64]],
-        step: float = 0.001,
-        convergence_thresh: float = 0.001,
+        step: float = 0.00001,
+        convergence_thresh: float = 0.0001,
         iters: int | None = None,
     ) -> None:
         padding = np.full(x.shape[:-1] + (1,), 1)

@@ -18,7 +18,7 @@ class gradientDescent:
         lmbda: float = 0,
         convergence_thresh: float = 0.0001,
         iters: int | None = 300,
-        step: float = 0.0001,
+        step: float = 0.001,
     ):
         pcoef = coefficients.copy()
         pcoefmask = np.ones_like(pcoef)
